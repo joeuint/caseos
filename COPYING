@@ -1,0 +1,17 @@
+This software is provided to you under the GNU General Public License v2.0 or
+later (GPL-2.0-or-later). This allows you to follow the terms of version
+2 or (at your option) any later version. See doc/licenses/gpl-2.0.txt for the
+license text of the GPL v2.0. However, the following exception applies:
+
+START EXCEPTION TERMS
+
+For greater certainty, the license does not cover user programs that interact
+with the kernel via "syscalls". They are considered normal use and do not have
+to abide by the license set by this project.
+
+END EXCEPTION TERMS
+
+This exception was added to hopefully address any ambinguity behind syscalls,
+even though it should be obvious that they are not the same as "Derived Work".
+
+All contributions are subject to these terms.
