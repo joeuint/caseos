@@ -5,9 +5,16 @@ license text of the GPL v2.0. However, the following exception applies:
 
 START EXCEPTION TERMS
 
-For greater certainty, the license does not cover user programs that interact
-with the kernel via "syscalls". They are considered normal use and do not have
-to abide by the license set by this project.
+1. For greater certainty, use of syscalls in a user program does not, by itself,
+constitute copying or conveying of the software under the license. Use of
+syscalls is permitted without obligations or restrictions under the license.
+
+2. The use of syscalls also does not provide an exemption from compliance with
+the the license. All terms of the license still apply, even with the exception
+in force.
+
+3. This exception does not imply that all user programs are exempt from licence
+restrictions and obligations.
 
 END EXCEPTION TERMS
 
