@@ -1,0 +1,12 @@
+image: archlinux
+secrets:
+    - 4bf28ba7-619a-4416-bcdb-65a697f5a833
+sources:
+    - https://git.sr.ht/~joeuint/caseos
+environment:
+    github_mirror: git@github.com:joeuint/caseos.git
+tasks:
+    - mirror: |
+        ssh-keyscan github.com >"$HOME"/.ssh/known_hosts
+        cd caseos
+        git push --mirror "$github_mirror"
