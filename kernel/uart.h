@@ -5,7 +5,14 @@
 #define UART_ADDR 0x10000000
 #define UART_REGISTER(reg) ((volatile unsigned char *)(UART_ADDR + (reg)))
 
-void uart_init(size_t uart_addr);
+// UART data registers
+#define RBR_OFFSET 0x00
+#define IER_OFFSET 0x01
+#define LSR_OFFSET 0x05
+
+// UART LSR BITS
+
+void uart_init(void);
 
 /* 
  * Writes a char to uart
@@ -22,4 +29,4 @@ void uart_print(const char * str);
  *
  * *DO NOT USE EXCEPT FOR TEMP DEBUGGING*
  */
-void uart_debugprint();
+void uart_debugprint(void);
