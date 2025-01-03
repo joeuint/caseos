@@ -1,12 +1,11 @@
-image: archlinux
+image: alpine/edge
 secrets:
-    - 4bf28ba7-619a-4416-bcdb-65a697f5a833
-sources:
-    - https://git.sr.ht/~joeuint/caseos
+  - 676aba5a-87aa-4544-97f2-4817aca7408c
 environment:
-    github_mirror: git@github.com:joeuint/caseos.git
+  REPO: caseos
+  GH_USER: joeuint
 tasks:
-    - mirror: |
-        ssh-keyscan github.com >"$HOME"/.ssh/known_hosts
-        cd caseos
-        git push --mirror "$github_mirror"
+  - push-to-github: |
+      cd ~/"${REPO}"
+      git config --global credential.helper store
+      git push --mirror "https://github.com/${GH_USER}/${REPO}"
