@@ -7,5 +7,10 @@ environment:
 tasks:
   - push-to-github: |
       cd ~/"${REPO}"
+      # Create local tracking branches for all remote branches
+      for branch in $(git branch -r | grep -v '\->'); do
+        git branch --track "${branch#origin/}" "$branch" || true
+      done
+      git branch
       git config --global credential.helper store
       git push --mirror "https://github.com/${GH_USER}/${REPO}"
