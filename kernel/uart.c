@@ -7,9 +7,6 @@
 
 unsigned char * uart = (unsigned char*)UART_ADDR;
 
-void char_as_hex(char* buf, char c) { // Unsafe AF. Please never use
-}
-
 void uart_init(void) {
     *UART_REGISTER(IER_OFFSET) = 0x00; // Disable interupts
 }
