@@ -11,6 +11,7 @@
 #define LSR_OFFSET 0x05
 
 // UART LSR BITS
+#define BACKSPACE 0x08
 
 void uart_init(void);
 
@@ -25,8 +26,12 @@ void uart_putch(char c);
 void uart_print(const char * str);
 
 /*
- * Prints each register of uart. May be removed at anytime
+ * Prints the hex code of the key pressed.
  *
  * *DO NOT USE EXCEPT FOR TEMP DEBUGGING*
  */
-void uart_debugprint(void);
+void uart_debug(void) 
+    __attribute__((warning("Debugging function in use")));
+
+
+char uart_getch();
