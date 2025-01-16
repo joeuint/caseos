@@ -17,7 +17,7 @@ LD_SCRIPT = linker.ld
 TARGET = kernel.elf
 
 LINKOPTS = -nostdlib -ffreestanding
-COPTS = -ffreestanding -c -mcmodel=medany -Wall -Wextra -std=c17
+COPTS = -ffreestanding -c -mcmodel=medany -Wall -Wextra -std=c17 -g
 
 all: $(TARGET)
 
@@ -32,6 +32,9 @@ $(TARGET): $(OBJ)
 
 qemu: all kernel.elf
 	$(QEMU) $(QEMUOPTS)
+
+debugqemu: all kernel.elf
+	$(QEMU) $(QEMUOPTS) -gdb tcp::3333 -S
 
 clean:
 	rm -vf $(OBJ)
