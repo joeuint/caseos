@@ -1,7 +1,8 @@
 This software is provided to you under the GNU General Public License v2.0 or
 later (GPL-2.0-or-later). This allows you to follow the terms of version
 2 or (at your option) any later version. See doc/licenses/gpl-2.0.txt for the
-license text of the GPL v2.0. However, the following exception applies:
+license text of the GPL v2.0. However, the following exception applies the
+GPL-2.0:
 
 START EXCEPTION TERMS
 
@@ -10,13 +11,15 @@ constitute copying or conveying of the software under the license. Use of
 syscalls is permitted without obligations or restrictions under the license.
 
 2. The use of syscalls also does not provide an exemption from compliance with
-the the license. All terms of the license still apply, even with the exception
-in force.
-
-3. This exception does not imply that all user programs are exempt from licence
-restrictions and obligations.
+the other terms of the license. All terms of the license still apply, even with
+the exception in force.
 
 END EXCEPTION TERMS
+
+All software documentation including but not limited to the doc/ directory is
+licensed under the GNU Free Documentation License v1.3 or later
+(GFDL-1.3-or-later).  See doc/licenses/fdl-1.3.txt for the license text of the
+GFDL v1.3.
 
 This exception was added to hopefully address any ambinguity behind syscalls,
 even though it should be obvious that they are not the same as "Derived Work".

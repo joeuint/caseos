@@ -1,0 +1,9 @@
+                            caseos - A risc-v toy OS
+
+This project is licensed under the GNU General Public License Version 2 or
+later. See COPYING for details.
+
+Consult the doc/ directory for documentation. All documentation is written in
+markdown.
+
+(C) 2025 Joseph Umana, et al.
