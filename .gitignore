@@ -4,3 +4,6 @@ compile_commands.json
 
 # Clangd cache
 .cache/
+
+# imgs
+*.img
