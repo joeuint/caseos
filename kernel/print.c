@@ -6,4 +6,5 @@
 
 void printk(const char* format, ...) {
     uart_print(format);
+    uart_putch('\n');
 }
