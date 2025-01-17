@@ -4,8 +4,11 @@ AS = riscv64-unknown-elf-as
 QEMU = qemu-system-riscv64
 
 QEMUOPTS = -machine virt -kernel kernel.elf -nographic \
-           -bios none -serial mon:stdio
+           -bios none -serial mon:stdio -m 128M 
 
+QEMUOPTS += -global virtio-mmio.force-legacy=false
+QEMUOPTS += -drive file=disk.img,if=none,format=raw,id=main
+QEMUOPTS += -device virtio-blk-device,drive=main,bus=virtio-mmio-bus.0
 SRC = $(wildcard *.c)
 
 ASM = $(wildcard *.s)
