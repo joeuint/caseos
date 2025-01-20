@@ -3,11 +3,12 @@
 
 #include "uart.h"
 #include "block.h"
+#include "print.h"
 
 void kmain(void) {
     init_block();
 
-	uart_print("Hello world!\n");
+	printk("Hello world!");
 	while(1) {
         uart_debug();
 	}
