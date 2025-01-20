@@ -20,7 +20,7 @@ LD_SCRIPT = linker.ld
 TARGET = kernel.elf
 
 LINKOPTS = -nostdlib -ffreestanding
-COPTS = -ffreestanding -c -mcmodel=medany -Wall -Wextra -std=c17 -g
+COPTS = -ffreestanding -c -mcmodel=medany -Wall -Wextra -std=c17 -g3
 
 all: $(TARGET)
 
