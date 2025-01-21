@@ -9,6 +9,7 @@
 #include "panic.h"
 #include "alloc.h"
 #include "print.h"
+#include "string.h"
 
 // TODO: Implement locks
 struct block {
@@ -45,8 +46,25 @@ void init_memory() {
     printk("alloc: allocated %lu pages", alloced);
 }
 
-// TODO: Implement *_s functions
-// that zeroize memory
+int kfree_s(void* ptr) {
+    if ((uint64_t)ptr % PAGE_SIZE != 0)
+        return -1;
+
+    if (ptr < (void*)PAGE_START)
+        return -1;
+
+    if (ptr >= (void*)PAGE_END)
+        return -1;
+    
+    // Zeros the page
+    memset_s(ptr, 0, PAGE_SIZE);
+
+    struct block* block = (struct block*)ptr;
+    block->next = kernel_heap.free;
+    kernel_heap.free = block;
+
+    return 0;
+}
 
 int kfree(void* ptr)  {
     struct block* block = (struct block*)ptr;

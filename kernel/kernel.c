@@ -35,7 +35,7 @@ void kmain(void) {
 
     printk("%s", str);
 
-    if (kfree(str))
+    if (kfree_s(str))
         panicf("Failed to free testing string");
     
     print_notice();

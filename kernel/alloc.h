@@ -22,5 +22,6 @@ extern char* _end;
 
 void init_memory();
 
-int kfree(void* ptr) __attribute__((warn_unused_result));
 void* kalloc();
+int kfree(void* ptr) __attribute__((warn_unused_result));
+int kfree_s(void* ptr) __attribute__((warn_unused_result));
