@@ -23,4 +23,7 @@ SECTIONS {
 	.data : ALIGN(4K) {
 		*(.data);
 	}
+    
+    /* The Heap */
+    PROVIDE(_end = .);
 }
