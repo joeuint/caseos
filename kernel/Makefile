@@ -22,6 +22,10 @@ TARGET = kernel.elf
 LINKOPTS = -nostdlib -ffreestanding
 COPTS = -ffreestanding -c -mcmodel=medany -Wall -Wextra -std=c17 -g3
 
+ifeq ($(DEBUG), 1)
+    COPTS += -DDEBUG
+endif
+
 all: $(TARGET)
 
 $(TARGET): $(OBJ)

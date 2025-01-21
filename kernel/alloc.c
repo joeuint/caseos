@@ -29,7 +29,13 @@ void init_memory() {
     uint64_t alloced = 0;
 
     for (; ptr + PAGE_SIZE <= (char*)PAGE_END; ptr += PAGE_SIZE) {
-        // printk("alloc: freeing %p", (void*)ptr);
+        #ifdef DEBUG
+            // Print every 100th allocation
+            // printk is *way* too slow.
+            if (alloced % 100 == 0) {
+                printk("alloc: allocated %lu pages", alloced);
+            }
+        #endif
         if (kfree(ptr))
             panicf("Initial memory free failed");
 
