@@ -51,7 +51,6 @@ void init_memory() {
 int kfree(void* ptr)  {
     struct block* block = (struct block*)ptr;
 
-    // TODO: implement sanity checks
     if ((uint64_t)ptr % PAGE_SIZE != 0)
         return -1;
 
