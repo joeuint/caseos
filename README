@@ -1,9 +1,34 @@
                             caseos - A risc-v toy OS
 
+Caseos is a monolithic kernel for the risc-v architecture. It's currently only
+supported on the QEMU virt board. It's not intended for production use
+(currently).
+
+== License ==
 This project is licensed under the GNU General Public License Version 2 or
 later. See COPYING for details.
 
+== Documentation ==
 Consult the doc/ directory for documentation. All documentation is written in
 markdown.
+
+== Building ==
+You need a risc-v cross compiler and binutils to build the kernel. You can get
+these tools from the risc-v foundation. You also need QEMU to run the kernel.
+
+Run `make` to build the kernel binary. However, you it is recommended that you
+use the provided machine by running `make qemu` which will build the binary AND
+run it through QEMU. `make debugqemu` will allow you to debug the kernel using
+gdb remotely via port :3333 (or port specified in the Makefile). Setting the env
+DEBUG=1 during build-time will enable debug output. Changes will only apply upon
+recompiliation. Run `make clean` to clean up all objects and binaries.
+
+== Running ==
+Run `make qemu` to run the kernel in QEMU.
+
+== Contributing ==
+All patches must be connected to a real identity, and signed off. By making a
+contribution, you are agreeing to the Developer Certificate of Origin. See
+https://developercertificate.org/ for more information.
 
 (C) 2025 Joseph Umana, et al.
