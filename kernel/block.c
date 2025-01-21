@@ -10,6 +10,8 @@
 
 #include "panic.h"
 #include "print.h"
+#include "alloc.h"
+#include "string.h"
 
 #define BLOCK_ADDRESS 0x10001000
 
@@ -24,7 +26,20 @@
 #define VIRTIO_DEVICE_FEATURES_OFFSET 0x10
 #define VIRTIO_DRIVER_FEATURES_OFFSET 0x20
 #define VIRTIO_QUEUE_SEL_OFFSET 0x30
+#define VIRTIO_QUEUE_NUM_MAX_OFFSET 0x34
+#define VIRTIO_QUEUE_NUM_OFFSET 0x38
+#define VIRTIO_QUEUE_READY_OFFSET 0x44
 #define VIRTIO_STATUS_OFFSET 0x70
+
+#define VIRTIO_QUEUE_DESC_LOW 0x80
+#define VIRTIO_QUEUE_DESC_HIGH 0x84
+
+#define VIRTIO_QUEUE_DRIVER_LOW 0x90
+#define VIRTIO_QUEUE_DRIVER_HIGH 0x94
+
+#define VIRTIO_QUEUE_DEVICE_LOW 0xA0
+#define VIRTIO_QUEUE_DEVICE_HIGH 0xA4
+
 #define VIRTIO_CONFIG_OFFSET 0x100
 
 // Macros
@@ -66,6 +81,11 @@ typedef volatile uint64_t u64;
 #define VIRTIO_F_ANY_LAYOUT         27
 #define VIRTIO_RING_F_INDIRECT_DESC 28
 #define VIRTIO_RING_F_EVENT_IDX     29
+
+// BLK queue size
+//
+// TODO: Implement more elements
+#define VIRTIO_BLK_QUEUE_SIZE 8
 
 // BLK config struct
 // see https://docs.oasis-open.org/virtio/virtio/v1.2/virtio-v1.2.pdf#5a
@@ -126,12 +146,55 @@ void virtio_blk_write() {
     
 }
 
-void queue_init() {
-    // just in case
+struct virtq* queue_init() {
+    volatile uint32_t num_max;
+
     *BLOCK_REG(VIRTIO_QUEUE_SEL_OFFSET) = 0;
 
-    // we are using 1 queue only
+    if (*BLOCK_REG(VIRTIO_QUEUE_READY_OFFSET) != 0) {
+        panicf("virtio: Queue not ready");
+        return NULL;
+    }
 
+    num_max = *BLOCK_REG(VIRTIO_QUEUE_NUM_MAX_OFFSET);
+
+    if (num_max < 1) {
+        panicf("virtio: Queue num max < 1");
+        return NULL;
+    }
+
+    printk("virtio: queue num max %d", num_max);
+
+
+    // Allocate the queue
+    struct virtq * queue = (struct virtq *)kalloc();
+
+    // Zero it out
+    // You know what, we should probably just use memset but it does not exist
+    // yet. So I guess we will just use memset_s because im too lazy to copy it
+    // and make a normal memset. It should do the same thing though.
+    // 
+    // Bye,
+    // Joseph 2025-01-21
+    // TOOD: Replace with memset() when it exists
+    memset_s(queue, 0, sizeof(struct virtq));
+
+    *BLOCK_REG(VIRTIO_QUEUE_NUM_OFFSET) = VIRTIO_BLK_QUEUE_SIZE;
+
+    *BLOCK_REG(VIRTIO_QUEUE_DESC_LOW) = (uint64_t)queue->desc;
+    *BLOCK_REG(VIRTIO_QUEUE_DESC_HIGH) = (uint64_t)queue->desc >> 32;
+
+    *BLOCK_REG(VIRTIO_QUEUE_DRIVER_LOW) = (uint64_t)queue->avail;
+    *BLOCK_REG(VIRTIO_QUEUE_DRIVER_HIGH) = (uint64_t)queue->avail >> 32;
+
+    *BLOCK_REG(VIRTIO_QUEUE_DEVICE_LOW) = (uint64_t)queue->used;
+    *BLOCK_REG(VIRTIO_QUEUE_DEVICE_HIGH) = (uint64_t)queue->used >> 32;
+
+    // Finally queue ready
+
+    *BLOCK_REG(VIRTIO_QUEUE_READY_OFFSET) = 0x01;
+
+    return queue;
 }
 
 __attribute__((warning("Bad feature negotiation. Pls fix ASAP.")))
@@ -212,8 +275,11 @@ void init_block() {
 
     printk("virtio: Features OK");
 
+    // Init the queue
+    struct virtq* queue = queue_init();
+
     // Driver OK
-    // Yay!
+    // Yay! :D
     *BLOCK_REG(VIRTIO_STATUS_OFFSET) |= VIRTIO_STATUS_DRIVER_OK;
 
     printk("virtio: Driver OK");
@@ -225,7 +291,4 @@ void init_block() {
     le32 capacity = config->capacity;
 
     printk("virtio: Capacity: %d sectors", capacity);
-
-    // Init the queue
-    queue_init();
 }
