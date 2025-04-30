@@ -4,7 +4,7 @@ AS = riscv64-unknown-elf-as
 QEMU = qemu-system-riscv64
 
 QEMUOPTS = -machine virt -kernel kernel.elf -nographic \
-           -bios none -serial mon:stdio -m 128M 
+           -bios none -serial mon:stdio -m 128M  -D ./log.txt
 
 QEMUOPTS += -global virtio-mmio.force-legacy=false
 QEMUOPTS += -drive file=disk.img,if=none,format=raw,id=main

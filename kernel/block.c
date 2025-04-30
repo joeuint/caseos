@@ -29,6 +29,7 @@
 #define VIRTIO_QUEUE_NUM_MAX_OFFSET 0x34
 #define VIRTIO_QUEUE_NUM_OFFSET 0x38
 #define VIRTIO_QUEUE_READY_OFFSET 0x44
+#define VIRTIO_QUEUE_NOTIFY_OFFSET 0x50
 #define VIRTIO_STATUS_OFFSET 0x70
 
 #define VIRTIO_QUEUE_DESC_LOW 0x80
@@ -62,6 +63,11 @@
 #define VIRTIO_BLK_T_WRITE_ZEROES 13
 #define VIRTIO_BLK_T_SECURE_ERASE 14
 
+// Descriptor Flags
+#define VIRTQ_DESC_F_NEXT 1
+#define VIRTQ_DESC_F_WRITE 2
+#define VIRTQ_DESC_F_INDIRECT 4
+
 // Typedefs 
 typedef volatile uint64_t le64;
 typedef volatile uint32_t le32;
@@ -84,7 +90,7 @@ typedef volatile uint64_t u64;
 
 // BLK queue size
 //
-// TODO: Implement more elements
+// Changed down to four. A page is about 4KiB. With 8, it would go over a page
 #define VIRTIO_BLK_QUEUE_SIZE 8
 
 // BLK config struct
@@ -130,8 +136,30 @@ struct virtio_blk_req {
     le32 type;
     le32 reserved;
     le64 sector;
-    u8 data[512]; // We r/w 512 bytes at a time
-    u8 status;
+} __attribute__((packed));
+
+struct virtq_desc {
+    le64 addr;
+    le32 len;
+    le16 flags;
+    le16 next;
+};
+
+struct virtq_avail {
+    le16 flags;
+    le16 idx;
+    le16 ring[];
+};
+
+struct virtq_used_elem {
+    le32 id;
+    le32 len;
+};
+
+struct virtq_used {
+    le16 flags;
+    le16 idx;
+    struct virtq_used_elem ring[];
 };
 
 struct virtq {
@@ -141,9 +169,54 @@ struct virtq {
     struct virtq_used *used;
 };
 
-void virtio_blk_write() {
-    // just read the first sector
-    
+static inline void virtio_wmb(void) {
+    __asm__ __volatile__("fence w, w" ::: "memory");
+}
+
+void virtio_blk_write(struct virtq* queue) {
+    struct virtio_blk_req* req = (struct virtio_blk_req*)kalloc();
+
+    uint8_t* data = kalloc();
+    memset_s(data, 69, 512);
+
+    // Memset_s basically casts back to a volatile type so we can ignore
+    // the compiler warning by explicitly casting to (void*)
+    req->sector = 0;
+    req->reserved = 0;
+    req->type = VIRTIO_BLK_T_OUT;
+
+    queue->desc[0].addr = (uintptr_t)req;
+    queue->desc[0].len = sizeof(struct virtio_blk_req);
+    queue->desc[0].flags = VIRTQ_DESC_F_NEXT;
+    queue->desc[0].next = 1;
+
+    queue->desc[1].addr = (uintptr_t)data;
+    queue->desc[1].len = 512;
+    queue->desc[1].flags = VIRTQ_DESC_F_NEXT;
+    queue->desc[1].next = 2;
+
+    unsigned char status = 0xff;
+    queue->desc[2].addr = (uintptr_t)&status;
+    queue->desc[2].len = sizeof(status);
+    queue->desc[2].flags = VIRTQ_DESC_F_WRITE;
+    queue->desc[2].next = 0;
+
+    queue->avail->ring[queue->avail->idx % VIRTIO_BLK_QUEUE_SIZE] = 0;
+    virtio_wmb();
+    queue->avail->idx++;
+
+    virtio_wmb();
+
+    *BLOCK_REG(VIRTIO_QUEUE_NOTIFY_OFFSET) = 0;
+
+    while (status == 0xff) {
+        __asm__ volatile ("nop");
+    }
+
+    if (kfree(data))
+        panicf("failed to free");
+
+    printk("%u", status);
 }
 
 struct virtq* queue_init() {
@@ -179,6 +252,22 @@ struct virtq* queue_init() {
     // TOOD: Replace with memset() when it exists
     memset_s(queue, 0, sizeof(struct virtq));
 
+    // Allocate each ring
+    // TODO: Look at storing these directly in the struct?
+    // The issue is that virtq would be bigger and may require an extra
+    // page or two.
+    queue->desc = kalloc();
+    queue->avail = kalloc();
+    queue->used = kalloc();
+    if (!queue->desc || !queue->avail || !queue->used)
+        panicf("Failed to alloc descs");
+    
+    // should be zeroed or QEMU will have an aneurysm lol
+    // especially queue->avail.
+    memset_s(queue->desc, 0, PAGE_SIZE);
+    memset_s(queue->avail, 0, PAGE_SIZE);
+    memset_s(queue->used, 0, PAGE_SIZE);
+
     *BLOCK_REG(VIRTIO_QUEUE_NUM_OFFSET) = VIRTIO_BLK_QUEUE_SIZE;
 
     *BLOCK_REG(VIRTIO_QUEUE_DESC_LOW) = (uint64_t)queue->desc;
@@ -191,6 +280,7 @@ struct virtq* queue_init() {
     *BLOCK_REG(VIRTIO_QUEUE_DEVICE_HIGH) = (uint64_t)queue->used >> 32;
 
     // Finally queue ready
+    virtio_wmb();
 
     *BLOCK_REG(VIRTIO_QUEUE_READY_OFFSET) = 0x01;
 
@@ -201,6 +291,14 @@ __attribute__((warning("Bad feature negotiation. Pls fix ASAP.")))
 void negotiate_features() {
     volatile uint32_t features;
     features = *BLOCK_REG(VIRTIO_DEVICE_FEATURES_OFFSET);
+
+    features &= ~(1 << VIRTIO_BLK_F_RO);
+    features &= ~(1 << VIRTIO_BLK_F_SCSI);
+    features &= ~(1 << VIRTIO_BLK_F_CONFIG_WCE);
+    features &= ~(1 << VIRTIO_BLK_F_MQ);
+    features &= ~(1 << VIRTIO_F_ANY_LAYOUT);
+    features &= ~(1 << VIRTIO_RING_F_EVENT_IDX);
+    features &= ~(1 << VIRTIO_RING_F_INDIRECT_DESC);
 
     printk("virtio: Device Features: %d", features);
 
@@ -247,6 +345,7 @@ void init_block() {
 
     // Now we set the ACKNOWLEDGE status bit
     printk("virtio: ACK device");
+    virtio_wmb();
     *BLOCK_REG(VIRTIO_STATUS_OFFSET) |= VIRTIO_STATUS_ACKNOWLEDGE;
 
     // Check if block device
@@ -258,12 +357,14 @@ void init_block() {
     printk("virtio: BLK device DRIVER OK");
 
     // Set the DRIVER status bit
+    virtio_wmb();
     *BLOCK_REG(VIRTIO_STATUS_OFFSET) |= VIRTIO_STATUS_DRIVER;
 
     printk("virtio: Negotiating features");
 
     // Feature negotiation
     negotiate_features();
+    virtio_wmb();
 
     *BLOCK_REG(VIRTIO_STATUS_OFFSET) |= VIRTIO_STATUS_FEATURES_OK;
 
@@ -280,6 +381,7 @@ void init_block() {
 
     // Driver OK
     // Yay! :D
+    virtio_wmb();
     *BLOCK_REG(VIRTIO_STATUS_OFFSET) |= VIRTIO_STATUS_DRIVER_OK;
 
     printk("virtio: Driver OK");
@@ -291,4 +393,6 @@ void init_block() {
     le32 capacity = config->capacity;
 
     printk("virtio: Capacity: %d sectors", capacity);
+
+    virtio_blk_write(queue);
 }
