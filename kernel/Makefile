@@ -31,7 +31,7 @@ all: $(TARGET)
 $(TARGET): $(OBJ)
 	$(CC) -T $(LD_SCRIPT) -o $@ $^ $(LINKOPTS)
 
-%.o: %.c
+%.o: %.c %.h
 	$(CC) $(COPTS) $< -o $@
 
 %.o: %.s
