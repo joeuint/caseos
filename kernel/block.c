@@ -232,7 +232,7 @@ void init_block() {
     volatile struct virtio_blk_config * config = (struct virtio_blk_config *)
         BLOCK_REG(VIRTIO_CONFIG_OFFSET);
 
-    le32 capacity = config->capacity;
+    uint32_t capacity = config->capacity;
 
     printk("virtio: Capacity: %d sectors", capacity);
 

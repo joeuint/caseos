@@ -80,30 +80,30 @@ struct virtio_blk_config {
     volatile uint32_t seg_max;
     struct virtio_blk_geometry {
         volatile uint16_t cylinders;
-        uint8_t heads;
-        uint8_t sectors;
+        volatile uint8_t heads;
+        volatile uint8_t sectors;
     } geometry;
     volatile uint32_t blk_size;
     struct virtio_blk_topology {
         // # of logical blocks per physical block (log2)
-        uint8_t physical_block_exp;
+        volatile uint8_t physical_block_exp;
         // offset of first aligned logical block
-        uint8_t alignment_offset;
+        volatile uint8_t alignment_offset;
         // suggested minimum I/O size in blocks
         volatile uint16_t min_io_size;
         // optimal (suggested maximum) I/O size in blocks
         volatile uint32_t opt_io_size;
     } topology;
-    uint8_t writeback;
-    uint8_t unused0;
-    u16 num_queues;
+    volatile uint8_t writeback;
+    volatile uint8_t unused0;
+    volatile uint16_t num_queues;
     volatile uint32_t max_discard_sectors;
     volatile uint32_t max_discard_seg;
     volatile uint32_t discard_sector_alignment;
     volatile uint32_t max_write_zeroes_sectors;
     volatile uint32_t max_write_zeroes_seg;
-    uint8_t write_zeroes_may_unmap;
-    uint8_t unused1[3];
+    volatile uint8_t write_zeroes_may_unmap;
+    volatile uint8_t unused1[3];
     volatile uint32_t max_secure_erase_sectors;
     volatile uint32_t max_secure_erase_seg;
     volatile uint32_t secure_erase_sector_alignment;
