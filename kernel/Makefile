@@ -10,6 +10,7 @@ QEMUOPTS += -global virtio-mmio.force-legacy=false
 QEMUOPTS += -drive file=disk.img,if=none,format=raw,id=main
 QEMUOPTS += -device virtio-blk-device,drive=main,bus=virtio-mmio-bus.0
 SRC = $(wildcard *.c)
+HEADER = $(wildcard *.h)
 
 ASM = $(wildcard *.s)
 
@@ -28,10 +29,10 @@ endif
 
 all: $(TARGET)
 
-$(TARGET): $(OBJ)
+$(TARGET): $(OBJ) $(HEADER)
 	$(CC) -T $(LD_SCRIPT) -o $@ $^ $(LINKOPTS)
 
-%.o: %.c %.h
+%.o: %.c
 	$(CC) $(COPTS) $< -o $@
 
 %.o: %.s
