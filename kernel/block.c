@@ -12,10 +12,15 @@
 #include "print.h"
 #include "alloc.h"
 #include "string.h"
+#include "lock.h"
 
 #include "virtio.h"
 
+spinlock diskLock = {0};
+
 void virtio_blk_write(struct virtq* queue) {
+    acquire(&diskLock);
+
     struct virtio_blk_req* req = (struct virtio_blk_req*)kalloc();
 
     uint8_t* data = kalloc();
@@ -55,10 +60,10 @@ void virtio_blk_write(struct virtq* queue) {
         __asm__ volatile ("nop");
     }
 
+    release(&diskLock);
+
     if (kfree(data))
         panicf("failed to free");
-
-    printk("%u", status);
 }
 
 struct virtq* queue_init() {
