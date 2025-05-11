@@ -2,9 +2,9 @@
 #include <stdatomic.h>
 #include <stdbool.h>
 
-struct spinlock {
+typedef struct {
     atomic_bool locked;
-} typedef spinlock;
+} spinlock;
 
 
 void acquire(spinlock* lock);

@@ -16,19 +16,17 @@
 
 #include "virtio.h"
 
-spinlock diskLock = {0};
+spinlock diskLock;
+struct virtq* queue;
 
-void virtio_blk_write(struct virtq* queue) {
+void virtio_blk_write(volatile uint8_t* data, volatile uint64_t sector) {
     acquire(&diskLock);
 
     struct virtio_blk_req* req = (struct virtio_blk_req*)kalloc();
 
-    uint8_t* data = kalloc();
-    memset_s(data, 69, 512);
-
     // Memset_s basically casts back to a volatile type so we can ignore
     // the compiler warning by explicitly casting to (void*)
-    req->sector = 0;
+    req->sector = sector;
     req->reserved = 0;
     req->type = VIRTIO_BLK_T_OUT;
 
@@ -60,10 +58,11 @@ void virtio_blk_write(struct virtq* queue) {
         __asm__ volatile ("nop");
     }
 
-    release(&diskLock);
+    if (kfree(req)) {
+        panicf("Failed to free virtio req");
+    }
 
-    if (kfree(data))
-        panicf("failed to free");
+    release(&diskLock);
 }
 
 struct virtq* queue_init() {
@@ -224,7 +223,7 @@ void init_block() {
     printk("virtio: Features OK");
 
     // Init the queue
-    struct virtq* queue = queue_init();
+    queue = queue_init();
 
     // Driver OK
     // Yay! :D
@@ -241,5 +240,4 @@ void init_block() {
 
     printk("virtio: Capacity: %d sectors", capacity);
 
-    virtio_blk_write(queue);
 }
