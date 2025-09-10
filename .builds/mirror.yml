@@ -1,6 +1,6 @@
 image: alpine/edge
 secrets:
-  - 676aba5a-87aa-4544-97f2-4817aca7408c
+  - 0226e99e-651c-48d2-abc8-958a1ae61661
 environment:
   REPO: caseos
   GH_USER: joeuint
