@@ -1,10 +1,11 @@
 image: alpine/edge
 secrets:
   - 0226e99e-651c-48d2-abc8-958a1ae61661
-  - 679413a7-cfcb-447d-93a0-2551d3917ddc
+  #- 679413a7-cfcb-447d-93a0-2551d3917ddc
 environment:
   REPO: caseos
   GH_USER: joeuint
+  GIT_SSH_COMMAND: ssh -o StrictHostKeyChecking=no
 tasks:
   - push-to-github: |
       cd ~/"${REPO}"
